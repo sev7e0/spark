@@ -314,11 +314,15 @@ object SparkEnv extends Logging {
 
     // Let the user specify short names for shuffle managers
     val shortShuffleMgrNames = Map(
-      "sort" -> classOf[org.apache.spark.shuffle.sort.SortShuffleManager].getName,
-      "tungsten-sort" -> classOf[org.apache.spark.shuffle.sort.SortShuffleManager].getName)
+      "sort" -> classOf[org.apache.spark.shuffle.sort.SortShuffleManager].getName)
     val shuffleMgrName = conf.get(config.SHUFFLE_MANAGER)
-    val shuffleMgrClass =
-      shortShuffleMgrNames.getOrElse(shuffleMgrName.toLowerCase(Locale.ROOT), shuffleMgrName)
+    val shuffleMgrClass = shortShuffleMgrNames(shuffleMgrName.toLowerCase(Locale.ROOT)) match {
+      case specifyShuffleMgrClass: String => specifyShuffleMgrClass
+      case _ =>
+        logWarning(s"Shuffle manager with name $shuffleMgrName not found. Please check " +
+          s"`spark.shuffle.manager` setting. Now will use default.")
+        shortShuffleMgrNames("sort")
+    }
     val shuffleManager = instantiateClass[ShuffleManager](shuffleMgrClass)
 
     val memoryManager: MemoryManager = UnifiedMemoryManager(conf, numUsableCores)

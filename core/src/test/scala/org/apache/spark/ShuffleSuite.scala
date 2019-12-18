@@ -30,6 +30,7 @@ import org.apache.spark.rdd.{CoGroupedRDD, OrderedRDDFunctions, RDD, ShuffledRDD
 import org.apache.spark.scheduler.{MapStatus, MyRDD, SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.shuffle.ShuffleWriter
+import org.apache.spark.shuffle.sort.SortShuffleManager
 import org.apache.spark.storage.{ShuffleBlockId, ShuffleDataBlockId, ShuffleIndexBlockId}
 import org.apache.spark.util.{MutablePair, Utils}
 
@@ -40,6 +41,12 @@ abstract class ShuffleSuite extends SparkFunSuite with Matchers with LocalSparkC
   // Ensure that the DAGScheduler doesn't retry stages whose fetches fail, so that we accurately
   // test that the shuffle works (rather than retrying until all blocks are local to one Executor).
   conf.set(TEST_NO_STAGE_RETRY, true)
+
+  test("specify different short names for shuffle managers") {
+    conf.set(config.SHUFFLE_MANAGER, "hash")
+    sc = new SparkContext("local", "test", conf)
+    assert(sc.env.shuffleManager.isInstanceOf[SortShuffleManager])
+  }
 
   test("groupByKey without compression") {
     val myConf = conf.clone().set(config.SHUFFLE_COMPRESS, false)

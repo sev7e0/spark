@@ -159,6 +159,7 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, val rpcEnv: Rp
         }
 
       case ReviveOffers =>
+        // 获取Executor资源
         makeOffers()
 
       case KillTask(taskId, executorId, interruptThread, reason) =>
