@@ -283,6 +283,9 @@ abstract class RDD[T: ClassTag](
    * Internal method to this RDD; will read from cache if applicable, or otherwise compute it.
    * This should ''not'' be called by users directly, but is available for implementors of custom
    * subclasses of RDD.
+   *
+   * 此RDD；的内部方法将从缓存中读取（如果适用）
+   * ，或以其他方式计算它。*用户不应直接调用此项，但可用于RDD的自定义*子类的实现者。
    */
   final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
     if (storageLevel != StorageLevel.NONE) {

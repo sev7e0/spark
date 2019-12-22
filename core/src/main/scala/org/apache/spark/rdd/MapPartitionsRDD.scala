@@ -48,6 +48,8 @@ private[spark] class MapPartitionsRDD[U: ClassTag, T: ClassTag](
 
   override def getPartitions: Array[Partition] = firstParent[T].partitions
 
+  //根据给定的算子或者函数进行计算，针对每一个partition，
+  //并返回一个新的rdd
   override def compute(split: Partition, context: TaskContext): Iterator[U] =
     f(context, split.index, firstParent[T].iterator(split, context))
 

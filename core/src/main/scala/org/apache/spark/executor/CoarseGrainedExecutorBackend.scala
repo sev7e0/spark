@@ -42,6 +42,18 @@ import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages._
 import org.apache.spark.serializer.SerializerInstance
 import org.apache.spark.util.{ThreadUtils, Utils}
 
+/**
+ * work为当前application启动的后台进程，用与接收任务指令
+ *
+ * @param rpcEnv
+ * @param driverUrl
+ * @param executorId
+ * @param hostname
+ * @param cores
+ * @param userClassPath
+ * @param env
+ * @param resourcesFileOpt
+ */
 private[spark] class CoarseGrainedExecutorBackend(
     override val rpcEnv: RpcEnv,
     driverUrl: String,
@@ -70,6 +82,7 @@ private[spark] class CoarseGrainedExecutorBackend(
    */
   private[executor] val taskResources = new mutable.HashMap[Long, Map[String, ResourceInformation]]
 
+  //启动
   override def onStart() {
     logInfo("Connecting to driver: " + driverUrl)
     val resources = parseOrFindResources(resourcesFileOpt)

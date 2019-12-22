@@ -229,8 +229,11 @@ private[spark] class Executor(
   private[executor] def numRunningTasks: Int = runningTasks.size()
 
   def launchTask(context: ExecutorBackend, taskDescription: TaskDescription): Unit = {
+    //集成的是java的Runnable接口
     val tr = new TaskRunner(context, taskDescription)
+    //放入内存缓存
     runningTasks.put(taskDescription.taskId, tr)
+    //使用线程池执行
     threadPool.execute(tr)
   }
 
