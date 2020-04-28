@@ -229,6 +229,11 @@ private[spark] class BlockManager(
 
     protected def saveToDiskStore(): Unit
 
+    /**
+     *  非序列化方式写入
+     * @param inputStream
+     * @return
+     */
     private def saveDeserializedValuesToMemoryStore(inputStream: InputStream): Boolean = {
       try {
         val values = serializerManager.dataDeserializeStream(blockId, inputStream)(classTag)
@@ -283,23 +288,28 @@ private[spark] class BlockManager(
         } else {
           null
         }
+        //优先使用内存
         if (level.useMemory) {
           // Put it in memory first, even if it also has useDisk set to true;
           // We will drop it to disk later if the memory store can't hold it.
           val putSucceeded = if (level.deserialized) {
+            //根据序列化情况使用不同的内存存储方式
             saveDeserializedValuesToMemoryStore(blockData().toInputStream())
           } else {
             saveSerializedValuesToMemoryStore(readToByteBuffer())
           }
+          //当写入失败，并且启用了disk级别将开始写入到磁盘
           if (!putSucceeded && level.useDisk) {
             logWarning(s"Persisting block $blockId to disk instead.")
             saveToDiskStore()
           }
         } else if (level.useDisk) {
+          //使用磁盘保存
           saveToDiskStore()
         }
         val putBlockStatus = getCurrentBlockStatus(blockId, info)
         val blockWasSuccessfullyStored = putBlockStatus.storageLevel.isValid
+        //获取到block的状态，若是成功被store了，那么将通知master
         if (blockWasSuccessfullyStored) {
           // Now that the block is in either the memory or disk store,
           // tell the master about it.

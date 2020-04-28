@@ -58,7 +58,7 @@ private[spark] class ReliableRDDCheckpointData[T: ClassTag](@transient private v
   protected override def doCheckpoint(): CheckpointRDD[T] = {
     val newRDD = ReliableCheckpointRDD.writeRDDToCheckpointDirectory(rdd, cpDir)
 
-    // Optionally clean our checkpoint files if the reference is out of scope
+    // 如果引用超出范围，可以选择清除检查点文件
     if (rdd.conf.get(CLEANER_REFERENCE_TRACKING_CLEAN_CHECKPOINTS)) {
       rdd.context.cleaner.foreach { cleaner =>
         cleaner.registerRDDCheckpointDataForCleanup(newRDD, rdd.id)

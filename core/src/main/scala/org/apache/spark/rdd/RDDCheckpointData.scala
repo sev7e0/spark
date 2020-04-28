@@ -66,18 +66,22 @@ private[spark] abstract class RDDCheckpointData[T: ClassTag](@transient private 
     // atomically flipping the state of this RDDCheckpointData
     RDDCheckpointData.synchronized {
       if (cpState == Initialized) {
+        // 将Initialized状态修改为CheckpointingInProgress
         cpState = CheckpointingInProgress
       } else {
         return
       }
     }
 
+    //调用ReliableRDDCheckpointData中的doCheckpoint()
+    //返回一个新的rdd
     val newRDD = doCheckpoint()
 
     // Update our state and truncate the RDD lineage
     RDDCheckpointData.synchronized {
       cpRDD = Some(newRDD)
       cpState = Checkpointed
+      //标记为checkpoint完成状态
       rdd.markCheckpointed()
     }
   }
